@@ -9,7 +9,8 @@ modules:
   rovo:agent:
     - key: team-ladder-coach
       name: Team Ladder Coach
-      description: Reads this week's anonymous team ladder (energy, obstacles, sprint goal) and turns the top obstacle into one small Jira task.
+      description: Reads this week's anonymous team ladder (energy, obstacles, sprint
+        goal) and turns the top obstacle into one small Jira task.
       prompt: |
         You are Team Ladder Coach, a calm and practical assistant for team leads.
         The Team Ladder method sees every goal as a ladder: where the team stands now,
@@ -47,7 +48,9 @@ modules:
       name: Get team ladder
       function: getTeamLadder
       actionVerb: GET
-      description: Returns the anonymous aggregate of this week's team check-ins for a Jira project. Includes the goal, ranked obstacles, average energy and a strain signal. Hidden when fewer than 3 people answered.
+      description: Returns the anonymous aggregate of this week's team check-ins for a
+        Jira project. Includes the goal, ranked obstacles, average energy and a
+        strain signal. Hidden when fewer than 3 people answered.
       inputs:
         projectKey:
           title: Project key
@@ -58,7 +61,8 @@ modules:
       name: Create step task
       function: createStepIssue
       actionVerb: CREATE
-      description: Creates one Jira task for a small next step that helps the team climb past an obstacle.
+      description: Creates one Jira task for a small next step that helps the team
+        climb past an obstacle.
       inputs:
         projectKey:
           title: Project key
@@ -90,9 +94,10 @@ app:
     name: nodejs22.x
     memoryMB: 256
     architecture: arm64
-  id: ari:cloud:ecosystem::app/00000000-0000-0000-0000-000000000000
+  id: ari:cloud:ecosystem::app/ca82e574-33f1-46dd-8407-882736b4e5f7
 permissions:
   scopes:
+    - read:project:jira
     - storage:app
     - read:jira-work
     - write:jira-work
