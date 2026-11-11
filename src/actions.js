@@ -4,9 +4,20 @@ import { getLadder } from './ladder';
 
 const cleanKey = (k) => String(k ?? '').trim().toUpperCase();
 
+// The agent passes a project key from chat, so check that the user can browse it.
+async function userCanBrowse(project) {
+  const res = await api
+    .asUser()
+    .requestJira(route`/rest/api/3/mypermissions?projectKey=${project}&permissions=BROWSE_PROJECTS`);
+  if (!res.ok) return false;
+  const data = await res.json();
+  return Boolean(data?.permissions?.BROWSE_PROJECTS?.havePermission);
+}
+
 export async function getTeamLadder(payload) {
   const project = cleanKey(payload?.projectKey);
   if (!project) return { error: 'projectKey is required' };
+  if (!(await userCanBrowse(project))) return { error: 'You do not have access to this project' };
   const ladder = await getLadder(project);
   if (ladder.hidden) {
     return {

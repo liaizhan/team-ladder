@@ -16,12 +16,15 @@ resolver.define('getState', async ({ context }) => {
 
 resolver.define('submitAnswer', async ({ payload, context }) => {
   const project = projectOf(context);
-  await saveAnswer({ accountId: context.accountId, project, ...payload });
+  if (!project) throw new Error('No project in context');
+  const { energy, obstacle, note } = payload ?? {};
+  await saveAnswer({ energy, obstacle, note, accountId: context.accountId, project });
   return { ok: true, ladder: await getLadder(project) };
 });
 
 resolver.define('setGoal', async ({ payload, context }) => {
   const project = projectOf(context);
+  if (!project) throw new Error('No project in context');
   await setGoal(project, payload?.goal);
   return { ok: true, ladder: await getLadder(project) };
 });
