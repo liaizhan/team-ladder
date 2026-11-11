@@ -38,11 +38,19 @@ modules:
         - Use plain, warm language. No blame.
         - If the result has sampleData true, say once that this is a sample team for a
           demo, then coach as usual.
+        - If the result has atlassianGoals or linkedTeams (from Teamwork Graph), name the
+          goal the next step supports when one clearly fits. Do not invent a link.
       conversationStarters:
         - Show our team ladder for this week
         - What is our biggest obstacle right now?
         - Turn the top obstacle into a small task
       actions:
+        - get-team-ladder
+        - create-step-issue
+  rovo:mcp:
+    - key: team-ladder-mcp
+      name: Team Ladder
+      tools:
         - get-team-ladder
         - create-step-issue
   action:
@@ -105,3 +113,7 @@ permissions:
     - write:jira-work
     - read:board-scope:jira-software
     - read:sprint:jira-software
+    - read:graph:project:jira
+    - read:graph:team:atlassian
+    - read:graph:goal:atlassian
+    - read:graph:user:atlassian

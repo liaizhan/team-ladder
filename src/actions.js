@@ -1,6 +1,7 @@
 // Rovo actions used by the Team Ladder Coach agent.
 import api, { route } from '@forge/api';
 import { getLadder } from './ladder';
+import { graphContext, cloudIdFrom } from './graph';
 
 const cleanKey = (k) => String(k ?? '').trim().toUpperCase();
 
@@ -14,11 +15,13 @@ async function userCanBrowse(project) {
   return Boolean(data?.permissions?.BROWSE_PROJECTS?.havePermission);
 }
 
-export async function getTeamLadder(payload) {
+export async function getTeamLadder(payload, context) {
   const project = cleanKey(payload?.projectKey);
   if (!project) return { error: 'projectKey is required' };
   if (!(await userCanBrowse(project))) return { error: 'You do not have access to this project' };
   const ladder = await getLadder(project);
+  const accountId = context?.principal?.accountId ?? payload?.context?.accountId;
+  const graph = await graphContext(project, cloudIdFrom(payload?.context, context), accountId);
   if (ladder.hidden) {
     return {
       project,
@@ -45,6 +48,8 @@ export async function getTeamLadder(payload) {
     obstacles: ladder.obstacles,
     teamNotes: ladder.notes,
     energyTrend: ladder.trend,
+    ...(graph.linkedTeams.length ? { linkedTeams: graph.linkedTeams } : {}),
+    ...(graph.leadGoals.length ? { atlassianGoals: graph.leadGoals } : {}),
   };
 }
 
