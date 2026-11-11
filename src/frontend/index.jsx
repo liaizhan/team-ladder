@@ -38,6 +38,7 @@ const step = xcss({
   borderRadius: 'border.radius.100',
   backgroundColor: 'color.background.neutral',
 });
+const trendCell = xcss({ minWidth: '60px' });
 const goalStep = xcss({
   padding: 'space.150',
   borderRadius: 'border.radius.100',
@@ -103,18 +104,22 @@ function CheckIn({ obstacles, onDone }) {
   );
 }
 
-function Ladder({ ladder, onGoal }) {
+function Ladder({ ladder, onGoal, onSample }) {
   const [editing, setEditing] = useState(false);
   const [goal, setGoal] = useState(ladder.goal?.text ?? '');
 
   const goalLabel =
-    ladder.goal?.source === 'sprint' ? `Sprint goal (${ladder.goal.sprint})` : 'Team goal';
+    ladder.goal?.source === 'sprint'
+      ? `Sprint goal (${ladder.goal.sprint})`
+      : ladder.goal?.source === 'sample'
+        ? 'Team goal (sample)'
+        : 'Team goal';
 
   return (
     <Stack space="space.150">
       <Inline spread="space-between" alignBlock="center">
         <Heading as="h3">Team ladder, week {ladder.week}</Heading>
-        <Lozenge>{ladder.count} {ladder.count === 1 ? 'answer' : 'answers'}</Lozenge>
+        <Text>{ladder.count} {ladder.count === 1 ? 'answer' : 'answers'}</Text>
       </Inline>
 
       <Box xcss={goalStep}>
@@ -132,30 +137,42 @@ function Ladder({ ladder, onGoal }) {
               >
                 Save
               </Button>
-            </Inline>
-          ) : (
-            <Inline space="space.100" alignBlock="center">
-              <Text color="color.text.inverse">{ladder.goal?.text || 'No goal yet'}</Text>
-              <Button
-                appearance="default"
-                onClick={() => {
-                  setGoal(ladder.goal?.text ?? '');
-                  setEditing(true);
-                }}
-              >
-                Edit
+              <Button appearance="subtle" onClick={() => setEditing(false)}>
+                Cancel
               </Button>
             </Inline>
+          ) : (
+            <Text color="color.text.inverse">{ladder.goal?.text || 'No goal yet. Add one below.'}</Text>
           )}
         </Stack>
       </Box>
+      {!editing && (
+        <Inline alignInline="end">
+          <Button
+            appearance="subtle"
+            onClick={() => {
+              setGoal(ladder.goal?.text ?? '');
+              setEditing(true);
+            }}
+          >
+            {ladder.goal?.text ? 'Edit goal' : 'Add goal'}
+          </Button>
+        </Inline>
+      )}
 
       {ladder.hidden ? (
         <SectionMessage appearance="information" title="The ladder is still hidden">
-          <Text>
-            {ladder.count} of {ladder.minAnswers} answers so far. The team ladder appears when at
-            least {ladder.minAnswers} people answer, so nobody can be identified.
-          </Text>
+          <Stack space="space.100">
+            <Text>
+              {ladder.count} of {ladder.minAnswers} answers so far. The team ladder appears when at
+              least {ladder.minAnswers} people answer, so nobody can be identified. Share this page
+              with your team to collect answers.
+            </Text>
+            <Text>Want to see how it works first? Open a sample team. Real answers stay as they are.</Text>
+            <Inline>
+              <Button onClick={() => onSample(true)}>Preview with a sample team</Button>
+            </Inline>
+          </Stack>
         </SectionMessage>
       ) : (
         <>
@@ -192,11 +209,17 @@ function Ladder({ ladder, onGoal }) {
         </>
       )}
 
-      <Stack space="space.050">
+      <Stack space="space.100">
         <Text weight="bold">Energy trend, last 4 weeks</Text>
-        <Inline space="space.200">
+        <Inline space="space.150" grow="fill">
           {ladder.trend.map((t) => (
-            <Text key={t.week}>{t.week.slice(5)}: {t.avgEnergy ?? 'hidden'}</Text>
+            <Box key={t.week} xcss={trendCell}>
+              <Stack space="space.050">
+                <Text size="small">{t.week.slice(5)}</Text>
+                <ProgressBar value={t.avgEnergy ? t.avgEnergy / 5 : 0} />
+                <Text size="small" weight="bold">{t.avgEnergy ?? 'hidden'}</Text>
+              </Stack>
+            </Box>
           ))}
         </Inline>
       </Stack>
@@ -229,6 +252,10 @@ const App = () => {
     const res = await invoke('setGoal', { goal });
     setState((s) => ({ ...s, ladder: res.ladder }));
   };
+  const toggleSample = async (on) => {
+    const res = await invoke('setSample', { on });
+    setState((s) => ({ ...s, ladder: res.ladder }));
+  };
 
   return (
     <Stack space="space.300">
@@ -239,7 +266,20 @@ const App = () => {
           <Text>Thank you. Your answer for this week is saved. A new check-in opens on Monday.</Text>
         </SectionMessage>
       )}
-      <Ladder ladder={state.ladder} onGoal={saveGoal} />
+      {state.ladder.sample && (
+        <SectionMessage appearance="warning" title="Sample team">
+          <Stack space="space.100">
+            <Text>
+              You are looking at a sample team, not real answers. Ask Team Ladder Coach in Rovo about
+              it to try the full flow. Real answers are kept and never mixed in.
+            </Text>
+            <Inline>
+              <Button onClick={() => toggleSample(false)}>Back to real answers</Button>
+            </Inline>
+          </Stack>
+        </SectionMessage>
+      )}
+      <Ladder ladder={state.ladder} onGoal={saveGoal} onSample={toggleSample} />
     </Stack>
   );
 };

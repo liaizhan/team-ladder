@@ -53,6 +53,32 @@ async function voterId(accountId, project, week) {
 
 const answersKey = (project, week) => `answers:${project}:${week}`;
 const goalKey = (project) => `goal:${project}`;
+const sampleKey = (project) => `sample:${project}`;
+
+// Sample mode: a clearly labelled demo team, so a lead (or a judge) working alone
+// can see the full ladder and try the Rovo coach. Real answers are never touched
+// and never mixed with sample data.
+export async function isSample(project) {
+  return Boolean(await kvs.get(sampleKey(project)));
+}
+
+export async function setSample(project, on) {
+  if (on) await kvs.set(sampleKey(project), true);
+  else await kvs.delete(sampleKey(project));
+  return Boolean(on);
+}
+
+const SAMPLE_GOAL = 'Launch the new onboarding flow this sprint';
+const SAMPLE_ANSWERS = [
+  { energy: 4, obstacle: 'waiting', note: 'Code reviews wait two or three days before anyone picks them up.' },
+  { energy: 2, obstacle: 'waiting', note: '' },
+  { energy: 3, obstacle: 'waiting', note: 'Design sign-off is blocking two of my tickets.' },
+  { energy: 2, obstacle: 'meetings', note: 'Three status meetings on Tuesday, no time left to build.' },
+  { energy: 3, obstacle: 'meetings', note: '' },
+  { energy: 3, obstacle: 'unclear', note: 'Not sure which of the two launches comes first.' },
+  { energy: 3, obstacle: 'fear', note: '' },
+];
+const SAMPLE_TREND = [3.6, 3.4, 3.1];
 
 export async function saveAnswer({ accountId, project, energy, obstacle, note }) {
   const e = Number(energy);
@@ -120,19 +146,30 @@ export function strainSignal(avgEnergy, lowShare) {
 
 export async function getLadder(project) {
   const weeks = previousWeeks(4);
-  const goal = await getGoal(project);
-  const current = (await kvs.get(answersKey(project, weeks[0]))) ?? {};
+  const sample = await isSample(project);
+  let goal = await getGoal(project);
+  let current;
+  const trend = [];
+
+  if (sample) {
+    if (!goal.text) goal = { text: SAMPLE_GOAL, source: 'sample' };
+    current = Object.fromEntries(SAMPLE_ANSWERS.map((a, i) => [`sample-${i}`, a]));
+    const now = summarise(current).avgEnergy;
+    [...weeks].reverse().forEach((w, i) => {
+      trend.push({ week: w, avgEnergy: i < SAMPLE_TREND.length ? SAMPLE_TREND[i] : now });
+    });
+  } else {
+    current = (await kvs.get(answersKey(project, weeks[0]))) ?? {};
+    for (const w of [...weeks].reverse()) {
+      const s = summarise((await kvs.get(answersKey(project, w))) ?? {});
+      // Past weeks are shown only when they also met the anonymity threshold.
+      trend.push({ week: w, avgEnergy: s.count >= MIN_ANSWERS ? s.avgEnergy : null });
+    }
+  }
   const base = summarise(current);
 
-  const trend = [];
-  for (const w of [...weeks].reverse()) {
-    const s = summarise((await kvs.get(answersKey(project, w))) ?? {});
-    // Past weeks are shown only when they also met the anonymity threshold.
-    trend.push({ week: w, avgEnergy: s.count >= MIN_ANSWERS ? s.avgEnergy : null });
-  }
-
   if (base.count < MIN_ANSWERS) {
-    return { week: weeks[0], goal, count: base.count, hidden: true, minAnswers: MIN_ANSWERS, trend };
+    return { week: weeks[0], goal, count: base.count, hidden: true, minAnswers: MIN_ANSWERS, trend, sample };
   }
 
   const counts = {};
@@ -156,6 +193,7 @@ export async function getLadder(project) {
     goal,
     count: base.count,
     hidden: false,
+    sample,
     avgEnergy: base.avgEnergy,
     lowShare: base.lowShare,
     strain: strainSignal(base.avgEnergy, base.lowShare),

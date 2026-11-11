@@ -36,6 +36,8 @@ modules:
           signal", not "burnout diagnosis". If someone mentions a crisis, suggest they
           talk to a qualified professional or local emergency services.
         - Use plain, warm language. No blame.
+        - If the result has sampleData true, say once that this is a sample team for a
+          demo, then coach as usual.
       conversationStarters:
         - Show our team ladder for this week
         - What is our biggest obstacle right now?

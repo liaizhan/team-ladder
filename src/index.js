@@ -1,5 +1,5 @@
 import Resolver from '@forge/resolver';
-import { OBSTACLES, saveAnswer, hasAnswered, getLadder, setGoal, MIN_ANSWERS } from './ladder';
+import { OBSTACLES, saveAnswer, hasAnswered, getLadder, setGoal, setSample, MIN_ANSWERS } from './ladder';
 
 const resolver = new Resolver();
 
@@ -26,6 +26,13 @@ resolver.define('setGoal', async ({ payload, context }) => {
   const project = projectOf(context);
   if (!project) throw new Error('No project in context');
   await setGoal(project, payload?.goal);
+  return { ok: true, ladder: await getLadder(project) };
+});
+
+resolver.define('setSample', async ({ payload, context }) => {
+  const project = projectOf(context);
+  if (!project) throw new Error('No project in context');
+  await setSample(project, Boolean(payload?.on));
   return { ok: true, ladder: await getLadder(project) };
 });
 

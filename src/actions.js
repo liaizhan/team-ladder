@@ -32,6 +32,10 @@ export async function getTeamLadder(payload) {
   return {
     project,
     week: ladder.week,
+    sampleData: ladder.sample,
+    ...(ladder.sample
+      ? { sampleNote: 'Sample mode is on: this is a demo team, not real answers from this project.' }
+      : {}),
     goal: ladder.goal?.text || null,
     goalSource: ladder.goal?.source,
     answers: ladder.count,
