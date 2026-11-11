@@ -137,7 +137,7 @@ function Ladder({ ladder, onGoal }) {
           ) : (
             <Inline space="space.100" alignBlock="center">
               <Text color="color.text.inverse">{ladder.goal?.text || 'No goal yet'}</Text>
-              <Button appearance="subtle" onClick={() => setEditing(true)}>Edit</Button>
+              <Button appearance="default" onClick={() => setEditing(true)}>Edit</Button>
             </Inline>
           )}
         </Stack>
