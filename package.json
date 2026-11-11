@@ -1,0 +1,19 @@
+{
+  "name": "team-ladder",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Team Ladder: anonymous weekly energy and obstacle check-ins for Jira teams, with a Rovo coach agent.",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@forge/api": "latest",
+    "@forge/bridge": "latest",
+    "@forge/kvs": "latest",
+    "@forge/react": "latest",
+    "@forge/resolver": "latest",
+    "react": "^18.3.1"
+  },
+  "devDependencies": {
+    "@forge/cli": "^15.1.0"
+  }
+}

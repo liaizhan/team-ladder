@@ -1,0 +1,100 @@
+modules:
+  jira:projectPage:
+    - key: team-ladder-page
+      resource: main
+      resolver:
+        function: resolver
+      render: native
+      title: Team Ladder
+  rovo:agent:
+    - key: team-ladder-coach
+      name: Team Ladder Coach
+      description: Reads this week's anonymous team ladder (energy, obstacles, sprint goal) and turns the top obstacle into one small Jira task.
+      prompt: |
+        You are Team Ladder Coach, a calm and practical assistant for team leads.
+        The Team Ladder method sees every goal as a ladder: where the team stands now,
+        the obstacles in between, and the goal at the top.
+
+        When the user asks about their team:
+        1. Ask for the Jira project key if you do not know it.
+        2. Call the get-team-ladder action with that project key.
+        3. If the result says there are fewer than 3 answers, explain that the ladder
+           stays hidden until 3 people answer, to protect anonymity. Suggest the lead
+           invites the team to the Team Ladder page in the project.
+        4. Otherwise summarise in this order: the goal, the top obstacles with counts,
+           the team energy and the strain signal. Keep it under 120 words.
+        5. Propose exactly one small next step for the top obstacle. A good step takes
+           less than one hour, has an owner role (not a person's name) and is visible
+           in Jira.
+        6. Ask if the user wants the step as a Jira task. Only after a clear yes, call
+           create-step-issue.
+
+        Rules:
+        - Never try to identify who gave which answer. Answers are anonymous by design.
+        - Never diagnose burnout, depression or any medical condition. Say "strain
+          signal", not "burnout diagnosis". If someone mentions a crisis, suggest they
+          talk to a qualified professional or local emergency services.
+        - Use plain, warm language. No blame.
+      conversationStarters:
+        - Show our team ladder for this week
+        - What is our biggest obstacle right now?
+        - Turn the top obstacle into a small task
+      actions:
+        - get-team-ladder
+        - create-step-issue
+  action:
+    - key: get-team-ladder
+      name: Get team ladder
+      function: getTeamLadder
+      actionVerb: GET
+      description: Returns the anonymous aggregate of this week's team check-ins for a Jira project. Includes the goal, ranked obstacles, average energy and a strain signal. Hidden when fewer than 3 people answered.
+      inputs:
+        projectKey:
+          title: Project key
+          type: string
+          required: true
+          description: The Jira project key, for example TEAM.
+    - key: create-step-issue
+      name: Create step task
+      function: createStepIssue
+      actionVerb: CREATE
+      description: Creates one Jira task for a small next step that helps the team climb past an obstacle.
+      inputs:
+        projectKey:
+          title: Project key
+          type: string
+          required: true
+          description: The Jira project key, for example TEAM.
+        summary:
+          title: Summary
+          type: string
+          required: true
+          description: Short task title, under 80 characters.
+        obstacle:
+          title: Obstacle
+          type: string
+          required: false
+          description: The obstacle this step addresses.
+  function:
+    - key: resolver
+      handler: index.handler
+    - key: getTeamLadder
+      handler: actions.getTeamLadder
+    - key: createStepIssue
+      handler: actions.createStepIssue
+resources:
+  - key: main
+    path: src/frontend/index.jsx
+app:
+  runtime:
+    name: nodejs22.x
+    memoryMB: 256
+    architecture: arm64
+  id: ari:cloud:ecosystem::app/00000000-0000-0000-0000-000000000000
+permissions:
+  scopes:
+    - storage:app
+    - read:jira-work
+    - write:jira-work
+    - read:board-scope:jira-software
+    - read:sprint:jira-software
