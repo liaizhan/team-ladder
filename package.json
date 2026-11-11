@@ -4,7 +4,6 @@
   "private": true,
   "description": "Team Ladder: anonymous weekly energy and obstacle check-ins for Jira teams, with a Rovo coach agent.",
   "license": "MIT",
-  "type": "module",
   "dependencies": {
     "@forge/api": "latest",
     "@forge/bridge": "latest",

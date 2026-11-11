@@ -115,7 +115,7 @@ function Ladder({ ladder, onGoal }) {
     <Stack space="space.150">
       <Inline spread="space-between" alignBlock="center">
         <Heading as="h3">Team ladder, week {ladder.week}</Heading>
-        <Lozenge>{ladder.count} answers</Lozenge>
+        <Lozenge>{ladder.count} {ladder.count === 1 ? 'answer' : 'answers'}</Lozenge>
       </Inline>
 
       <Box xcss={goalStep}>
