@@ -94,7 +94,6 @@ function CheckIn({ obstacles, onDone }) {
         maxLength={280}
         placeholder="One sentence is enough"
         onChange={(e) => setNote(e.target.value)}
-        value={note}
       />
       {error && <SectionMessage appearance="error"><Text>{error}</Text></SectionMessage>}
       <Button appearance="primary" isDisabled={!energy || !obstacle || busy} onClick={submit}>
@@ -123,7 +122,7 @@ function Ladder({ ladder, onGoal }) {
           <Text color="color.text.inverse" weight="bold">{goalLabel}</Text>
           {editing ? (
             <Inline space="space.100">
-              <Textfield name="goal" value={goal} onChange={(e) => setGoal(e.target.value)} />
+              <Textfield name="goal" defaultValue={goal} onChange={(e) => setGoal(e.target.value)} />
               <Button
                 appearance="primary"
                 onClick={async () => {
@@ -137,7 +136,15 @@ function Ladder({ ladder, onGoal }) {
           ) : (
             <Inline space="space.100" alignBlock="center">
               <Text color="color.text.inverse">{ladder.goal?.text || 'No goal yet'}</Text>
-              <Button appearance="default" onClick={() => setEditing(true)}>Edit</Button>
+              <Button
+                appearance="default"
+                onClick={() => {
+                  setGoal(ladder.goal?.text ?? '');
+                  setEditing(true);
+                }}
+              >
+                Edit
+              </Button>
             </Inline>
           )}
         </Stack>
