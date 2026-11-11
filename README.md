@@ -37,6 +37,10 @@ forge install --product jira --site <your-site>.atlassian.net
 4. Optional: click **Edit** next to the goal to type a team goal. Without it the app shows the active sprint goal.
 5. Open Rovo chat, pick **Team Ladder Coach** and ask: "Show our team ladder for project KEY", then "Turn the top obstacle into a small task". Answer yes and check the new task with label `team-ladder`.
 
+## Privacy
+
+See [PRIVACY.md](PRIVACY.md).
+
 ## License
 
 MIT
